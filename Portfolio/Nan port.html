@@ -312,6 +312,35 @@
             font-size: 14px;
         }
 
+        /* Download tracking section - Simplified */
+        .download-tracker {
+            margin-top: 40px;
+            padding: 25px;
+            background-color: var(--light);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .download-icon {
+            font-size: 36px;
+            color: var(--secondary);
+        }
+
+        .download-count {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .download-label {
+            color: var(--text-light);
+            font-size: 18px;
+        }
+
         /* About Section */
         .about-content {
             display: grid;
@@ -556,6 +585,12 @@
                 max-width: 250px;
                 justify-content: center;
             }
+
+            .download-tracker {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
         }
 
         @media (max-width: 576px) {
@@ -637,12 +672,12 @@
                         <div>
                             <h3 class="cv-section-title">Education</h3>
                             <div class="cv-item">
-                                <h4>MSc in Software Engineering (From JNTUH India)</h4>
+                                <h4>MSc in Software Engineering</h4>
                                 <p class="date">2018 - 2020</p>
                                 <p>Specialized in software architecture and development methodologies</p>
                             </div>
                             <div class="cv-item">
-                                <h4>BSc in Computer Science (From MWU Ethiopia)</h4>
+                                <h4>BSc in Computer Science</h4>
                                 <p class="date">2013 - 2016</p>
                                 <p>Graduated with honors</p>
                             </div>
@@ -699,18 +734,27 @@
 
                 <div class="download-options">
                     <!-- Updated CV download links to point to your assets folder -->
-                    <a href="assets/nanbon-abera-cv.pdf" class="download-btn pdf" download>
+                    <a href="assets/nanbon-abera-cv.pdf" class="download-btn pdf" download data-format="pdf">
                         <i class="fas fa-file-pdf"></i>
                         <span>Download PDF Version</span>
                     </a>
-                    <a href="assets/nanbon-abera-cv.docx" class="download-btn word" download>
+                    <a href="assets/nanbon-abera-cv.docx" class="download-btn word" download data-format="word">
                         <i class="fas fa-file-word"></i>
                         <span>Download Word Version</span>
                     </a>
-                    <a href="assets/nanbon-abera-cv.txt" class="download-btn" download>
+                    <a href="assets/nanbon-abera-cv.txt" class="download-btn" download data-format="text">
                         <i class="fas fa-file-alt"></i>
                         <span>Download Text Version</span>
                     </a>
+                </div>
+
+                <!-- Simple Download Tracker -->
+                <div class="download-tracker">
+                    <div class="download-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <div class="download-count" id="total-downloads">0</div>
+                    <div class="download-label">Total CV Downloads</div>
                 </div>
 
                 <div class="stats">
@@ -889,17 +933,82 @@
             this.reset();
         });
 
-        // CV download tracking
-        document.querySelectorAll('.download-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const format = this.classList.contains('pdf') ? 'PDF' :
-                              this.classList.contains('word') ? 'Word' : 'Text';
-                console.log(`CV downloaded in ${format} format`);
-                // Here you could add analytics tracking
-            });
-        });
+        // Simple CV download tracking system
+        class DownloadTracker {
+            constructor() {
+                this.storageKey = 'cvTotalDownloads';
+                this.init();
+            }
+
+            init() {
+                // Initialize total count if it doesn't exist
+                if (!this.getTotalDownloads()) {
+                    this.resetTotal();
+                }
+
+                this.updateDisplay();
+                this.setupDownloadTracking();
+            }
+
+            getTotalDownloads() {
+                return parseInt(localStorage.getItem(this.storageKey)) || 0;
+            }
+
+            saveTotalDownloads(count) {
+                localStorage.setItem(this.storageKey, count);
+            }
+
+            resetTotal() {
+                this.saveTotalDownloads(0);
+            }
+
+            incrementTotal() {
+                const currentTotal = this.getTotalDownloads();
+                this.saveTotalDownloads(currentTotal + 1);
+                this.updateDisplay();
+
+                // Log the download (you could send this to analytics here)
+                console.log(`CV downloaded. Total downloads: ${currentTotal + 1}`);
+            }
+
+            setupDownloadTracking() {
+                document.querySelectorAll('.download-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.incrementTotal();
+
+                        // You could also send this data to a server here
+                        // this.sendToAnalytics();
+                    });
+                });
+            }
+
+            updateDisplay() {
+                const total = this.getTotalDownloads();
+                document.getElementById('total-downloads').textContent = total;
+            }
+
+            // Optional: Send data to server for analytics
+            sendToAnalytics() {
+                // This is where you would send the data to your analytics service
+                // For example, using fetch to your backend
+                /*
+                fetch('/api/track-download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        totalDownloads: this.getTotalDownloads(),
+                        timestamp: new Date().toISOString(),
+                        // Add any other data you want to track
+                    })
+                });
+                */
+            }
+        }
+
+        // Initialize the download tracker
+        const downloadTracker = new DownloadTracker();
     </script>
 </body>
-
 </html>
-
